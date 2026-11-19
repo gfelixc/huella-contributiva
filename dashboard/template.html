@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data: blob:;">
+<title>Huella contributiva · Cotizaciones a la Seguridad Social</title>
+<style>/*__STYLE__*/</style>
+</head>
+<body>
+<header class="top">
+  <div>
+    <h1>Huella contributiva · Cotizaciones a la Seguridad Social</h1>
+    <p id="subtitle" class="muted">Carga un informe <code>combined-report-*.json</code> para empezar.</p>
+  </div>
+  <div class="actions">
+    <label class="btn primary">Abrir informe JSON<input id="file-input" type="file" accept=".json,application/json" hidden></label>
+    <button id="export-csv" class="btn" type="button" disabled>Exportar CSV (filtrado)</button>
+  </div>
+</header>
+
+<div id="drop-overlay" class="drop-overlay" hidden><div>Suelta aquí el informe JSON</div></div>
+
+<main id="app" hidden>
+  <section class="filters card" aria-label="Filtros">
+    <div class="filter"><span class="flabel">Años</span>
+      <select id="f-year-from" aria-label="Año desde"></select><span class="muted">–</span><select id="f-year-to" aria-label="Año hasta"></select></div>
+    <div class="filter"><span class="flabel">Tipo de pagador</span><div id="f-payer-types" class="chips"></div></div>
+    <div class="filter"><span class="flabel">Régimen</span><div id="f-regimes" class="chips"></div></div>
+    <details class="filter dropdown"><summary><span class="flabel">Empresa / empleador</span> <span id="f-employers-summary">todas</span></summary><div id="f-employers" class="dropdown-body"></div></details>
+    <details class="filter dropdown"><summary><span class="flabel">Pagador</span> <span id="f-payers-summary">todos</span></summary><div id="f-payers" class="dropdown-body"></div></details>
+    <button id="f-reset" class="btn small" type="button">Restablecer filtros</button>
+    <span id="f-active" class="muted small"></span>
+  </section>
+
+  <section class="kpis" id="kpis" aria-label="Indicadores"></section>
+
+  <section class="card">
+    <div class="card-head">
+      <h2>Flujo de las cotizaciones <span class="muted small">(diagrama de Sankey)</span></h2>
+      <div class="controls"><label>Vista <select id="sk-preset"></select></label><span id="sk-stages" class="stages"></span></div>
+    </div>
+    <div id="sankey" class="chart sankey"></div>
+    <p class="muted small">Ancho de cada banda = importe. Pasa el ratón por un nodo o una banda para ver el detalle; clic en un nodo de empresa, pagador, tipo, régimen o año para filtrar. «Empresa / empleador» agrupa la cuota del trabajador retenida en nómina y la cuota empresarial de cada empresa; «Pagador» indica quién paga.</p>
+  </section>
+
+  <div class="grid2">
+    <section class="card">
+      <div class="card-head"><h2>Desglose</h2><div class="controls"><label>Niveles <select id="dd-preset"></select></label></div></div>
+      <nav id="dd-crumbs" class="crumbs" aria-label="Ruta"></nav>
+      <div id="dd-bars" class="bars"></div>
+    </section>
+    <section class="card">
+      <div class="card-head"><h2>Evolución</h2>
+        <div class="controls">
+          <div class="seg" role="group" aria-label="Periodo"><button type="button" data-gran="year" class="on">Año</button><button type="button" data-gran="month">Mes</button></div>
+          <label>Apilar por <select id="tl-stack"></select></label>
+        </div>
+      </div>
+      <div id="timeline" class="chart timeline"></div>
+      <div id="tl-legend" class="legend"></div>
+    </section>
+  </div>
+
+  <section class="card">
+    <div class="card-head"><h2>Tabla de desglose</h2>
+      <div class="controls"><button id="tt-expand" class="btn small" type="button">Expandir todo</button><button id="tt-collapse" class="btn small" type="button">Contraer</button></div></div>
+    <div class="table-wrap"><table id="tree-table" class="tree"><thead><tr><th>Concepto</th><th class="num">Importe</th><th class="num">% del nivel</th><th class="num">% del total</th><th class="num">Meses</th><th class="num">Entradas</th></tr></thead><tbody></tbody></table></div>
+  </section>
+
+  <div class="grid2">
+    <section class="card">
+      <div class="card-head"><h2>Avisos y huecos</h2><span id="issues-count" class="muted small"></span></div>
+      <ul id="issues" class="issues"></ul>
+    </section>
+    <section class="card">
+      <div class="card-head"><h2>Movimientos</h2><input id="mv-search" type="search" placeholder="Buscar (pagador, mes, régimen…)" aria-label="Buscar movimientos"></div>
+      <div class="table-wrap tall"><table id="movements" class="movements"><thead></thead><tbody></tbody></table></div>
+      <p id="mv-info" class="muted small"></p>
+    </section>
+  </div>
+  <footer class="muted small" id="footer"></footer>
+</main>
+
+<section id="empty" class="empty card">
+  <h2>Sin datos</h2>
+  <p>Arrastra aquí un fichero <code>combined-report-*.json</code> (de <code>node cli.js contributions-report</code>) o usa «Abrir informe JSON».</p>
+  <p class="muted small">Todo se procesa en este navegador: el fichero no sale de tu ordenador.</p>
+</section>
+<div id="tooltip" class="tooltip" hidden></div>
+
+<script id="report-data" type="application/json">__REPORT_DATA__</script>
+<script>/*__MODEL__*/</script>
+<script>/*__APP__*/</script>
+</body>
+</html>
