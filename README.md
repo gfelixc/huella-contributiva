@@ -2,6 +2,12 @@
 
 *A transparency and civic-awareness exercise: see every contribution to the Spanish state that your work has generated.*
 
+[![Example dashboard with generated data](example/dashboard.png)](example/dashboard.html)
+
+Example dashboard with generated data: open [`example/dashboard.html`](example/dashboard.html) (download it and open it
+in a browser) or [preview it online](https://htmlpreview.github.io/?https://github.com/gfelixc/huella-contributiva/blob/main/example/dashboard.html).
+Every person, company and amount in it is fictitious.
+
 Reads your Spanish Social Security and SEPE data with your own digital certificate (macOS Keychain), keeps every
 result on your Mac, and exposes it as a CLI and as an MCP server (15 tools). Behaviour on the government sites is
 read-only: queries and downloads, never requests, changes or submissions.
