@@ -311,7 +311,7 @@ export async function launchChrome() {
   await fs.mkdir(PROFILE_DIR, { recursive: true });
   const downloadsDir = path.join(PROFILE_DIR, '_downloads');
   await fs.mkdir(downloadsDir, { recursive: true });
-  return chromium.launchPersistentContext(PROFILE_DIR, {
+  const context = await chromium.launchPersistentContext(PROFILE_DIR, {
     channel: 'chrome',
     headless: false,
     viewport: null,
@@ -322,6 +322,8 @@ export async function launchChrome() {
     ignoreDefaultArgs: ['--use-mock-keychain', '--password-store=basic', '--enable-automation'],
     args: ['--no-first-run', '--no-default-browser-check'],
   });
+  await context.clearCookies().catch(() => {});
+  return context;
 }
 
 /**

@@ -186,6 +186,10 @@ async function savePdfAs(buf, label) {
 async function findServicePage(context) {
   for (const p of context.pages()) {
     if (p.isClosed()) continue;
+    if (p.url().includes('IdleTimeout')) {
+      await p.close().catch(() => {});
+      continue;
+    }
     const fields = await findPeriodFields(p).catch(() => null);
     if (!fields) continue;
     const txt = await pageText(p).catch(() => '');
@@ -194,14 +198,25 @@ async function findServicePage(context) {
   return null;
 }
 
-async function backToForm(page, formUrl) {
-  if (await findPeriodFields(page)) return true;
+async function backToForm(page, formUrl, forceReload = false) {
+  // Dismiss any error modal/popup if present
+  for (const frame of page.frames()) {
+    const closeBtn = await firstVisible(frame.locator('button:has-text("Cerrar"), a:has-text("Cerrar"), .ui-dialog-titlebar-close, [aria-label*="cerrar" i]'));
+    if (closeBtn) { await closeBtn.click().catch(() => {}); await settle(page); }
+  }
+  if (!forceReload && (await findPeriodFields(page))) {
+    const text = await pageText(page);
+    if (!ERROR_TEXT.test(text)) return true;
+  }
   // The live result pages have no "Atrás" button and the browser Back button shows a
   // "Confirm Form Resubmission" error (POST pages), so re-open the service entry URL
   // (the session is reused). An "Atrás" button is still used if a page offers one.
   if (await clickByText(page, BACK_BUTTON, { roles: ['button', 'link'], label: 'back', forbidden: QUOTA_FORBIDDEN, quiet: true })) {
     await settle(page);
-    if (await findPeriodFields(page)) return true;
+    if (!forceReload && (await findPeriodFields(page))) {
+      const text = await pageText(page);
+      if (!ERROR_TEXT.test(text)) return true;
+    }
   }
   if (formUrl) { await page.goto(formUrl, { timeout: 20000 }).catch(() => {}); await settle(page); }
   return Boolean(await findPeriodFields(page));
@@ -418,6 +433,7 @@ async function runQuotaFlow(context, { timeoutMs, auto, months, keepOpen, basesI
         const msg = (q.text.split('\n').filter((l) => ERROR_TEXT.test(l) || /liquidaci|periodo|disponible/i.test(l)).slice(0, 4).join(' ') || 'error').trim();
         summary.push(`## ${m.label}${empSuffix(m)}\n(no data) ${msg}`);
         Object.assign(entry, { status: 'no-data', message: msg.slice(0, 160) });
+        await backToForm(sp, formUrl, true);
       } else {
         // Several liquidations in the month: a list page whose rows are links titled
         // "Seleccione la liquidación N" (site label); the manual's older layout uses radios + "Continuar".
